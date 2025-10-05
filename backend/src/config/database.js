@@ -7,7 +7,9 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  ssl: false  // Changed: No SSL for educational purposes
+  ssl: {
+    rejectUnauthorized: false  // Changed from ssl: false
+  }
 });
 
 // Test connection
