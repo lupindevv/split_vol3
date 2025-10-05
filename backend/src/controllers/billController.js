@@ -227,7 +227,7 @@ const createBill = async (req, res) => {
         }
         
         const billNumber = `BILL-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-        const qrCodeUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/table/${tableNumber}`;
+        const qrCodeUrl = `${process.env.FRONTEND_URL}/table/${tableNumber}`;
         const qrCode = await generateQRCode(qrCodeUrl);
         
         const billResult = await pool.query(
