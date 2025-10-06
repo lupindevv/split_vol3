@@ -354,6 +354,75 @@ const addItemsToBill = async (req, res) => {
 // @desc    Close bill
 // @route   PUT /api/bills/:id/close
 // @access  Private
+const forceCloseBill = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Get bill details
+        const billCheck = await pool.query(
+            'SELECT * FROM bills WHERE id = $1',
+            [id]
+        );
+        
+        if (billCheck.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Bill not found'
+            });
+        }
+        
+        const bill = billCheck.rows[0];
+        
+        // Check if already closed
+        if (bill.status === 'closed') {
+            return res.status(400).json({
+                success: false,
+                message: 'Bill is already closed'
+            });
+        }
+        
+        // Get unpaid items count
+        const unpaidItems = await pool.query(
+            'SELECT COUNT(*) as count, SUM(total_price) as unpaid_amount FROM bill_items WHERE bill_id = $1 AND is_paid = false',
+            [id]
+        );
+        
+        const unpaidCount = parseInt(unpaidItems.rows[0].count);
+        const unpaidAmount = parseFloat(unpaidItems.rows[0].unpaid_amount || 0);
+        
+        // Force close the bill
+        const result = await pool.query(
+            `UPDATE bills 
+             SET status = 'closed', 
+                 closed_at = CURRENT_TIMESTAMP 
+             WHERE id = $1 
+             RETURNING *`,
+            [id]
+        );
+        
+        // Update table status
+        await pool.query(
+            "UPDATE tables SET status = 'available' WHERE id = $1",
+            [bill.table_id]
+        );
+        
+        res.json({
+            success: true,
+            message: `Bill force closed with ${unpaidCount} unpaid items (€${unpaidAmount.toFixed(2)})`,
+            data: result.rows[0],
+            unpaidItemsCount: unpaidCount,
+            unpaidAmount: unpaidAmount
+        });
+    } catch (error) {
+        console.error('Force close bill error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
 const closeBill = async (req, res) => {
     try {
         const { id } = req.params;
@@ -411,5 +480,6 @@ module.exports = {
     getBillByTableNumber,
     createBill,
     addItemsToBill,
-    closeBill
+    closeBill,
+    forceCloseBill
 };

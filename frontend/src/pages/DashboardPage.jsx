@@ -111,7 +111,7 @@ const DashboardPage = () => {
                                     ) : (
                                         <p className="text-green-400 text-sm font-semibold mb-2">AVAILABLE</p>
                                     )}
-                                    <a href={`http://localhost:5173/table/${num}`} target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1 bg-slate-700 text-white text-xs rounded">
+                                    <a href={`http://40.124.145.0/table/${num}`} target="_blank" rel="noopener noreferrer" className="inline-block px-3 py-1 bg-slate-700 text-white text-xs rounded">
                                         QR Link
                                     </a>
                                 </div>

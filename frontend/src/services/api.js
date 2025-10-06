@@ -45,7 +45,8 @@ export const billAPI = {
     getByTableNumber: (tableNumber) => api.get(`/api/bills/table/${tableNumber}`),
     create: (data) => api.post('/api/bills', data),
     addItems: (id, data) => api.post(`/api/bills/${id}/items`, data),
-    close: (id) => api.put(`/api/bills/${id}/close`)
+    close: (id) => api.put(`/api/bills/${id}/close`),
+    forceClose: (id) => api.put(`/api/bills/${id}/force-close`)
 };
 
 export const paymentAPI = {

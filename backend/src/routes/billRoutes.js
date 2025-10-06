@@ -6,7 +6,8 @@ const {
     getBillByTableNumber, // Add this
     createBill,
     addItemsToBill,
-    closeBill
+    closeBill,
+    forceCloseBill
 } = require('../controllers/billController');
 const { protect } = require('../middleware/auth');
 
@@ -19,5 +20,6 @@ router.get('/:id', getBill);
 router.post('/', protect, createBill);
 router.post('/:id/items', protect, addItemsToBill);
 router.put('/:id/close', protect, closeBill);
+router.put('/:id/force-close', protect, forceCloseBill);
 
 module.exports = router;
