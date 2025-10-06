@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: alexthm1/splitbill-backend:latest
+    image: alexthm1/splitbill-dev1:latest
     container_name: splitbill-backend
     ports:
       - "5000:5000"
