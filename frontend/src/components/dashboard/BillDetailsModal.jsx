@@ -178,26 +178,33 @@ const BillDetailsModal = ({ billId, onClose, onUpdate }) => {
                         )}
 
                         {/* Action Buttons */}
-                        <div className="flex gap-3 mb-6">
+                        <div className="space-y-3 mb-6">
                             {isFullyPaid ? (
                                 <button
                                     onClick={handleCloseBill}
                                     disabled={closingBill}
-                                    className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50 font-semibold"
+                                    className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50 font-semibold"
                                 >
                                     {closingBill ? 'Closing...' : 'Close Bill'}
                                 </button>
                             ) : (
-                                <>
-                                    <button
-                                        onClick={() => setShowForceCloseConfirm(true)}
-                                        className="flex-1 px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition font-semibold flex items-center justify-center gap-2"
-                                    >
-                                        <AlertTriangle className="w-5 h-5" />
-                                        Force Close Bill
-                                    </button>
-                                </>
+                                <button
+                                    onClick={() => setShowForceCloseConfirm(true)}
+                                    className="w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition font-semibold flex items-center justify-center gap-2"
+                                >
+                                    <AlertTriangle className="w-5 h-5" />
+                                    Force Close Bill
+                                </button>
                             )}
+                            
+                            {/* Delete Button - Always visible */}
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="w-full px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-semibold flex items-center justify-center gap-2"
+                            >
+                                <X className="w-5 h-5" />
+                                Delete Bill
+                            </button>
                         </div>
 
                         {/* QR Code */}

@@ -351,8 +351,61 @@ const addItemsToBill = async (req, res) => {
     }
 };
 
-// @desc    Close bill
+// @desc    Close bill (normal close - only if all items paid)
 // @route   PUT /api/bills/:id/close
+// @access  Private
+const closeBill = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const unpaidItems = await pool.query(
+            'SELECT COUNT(*) as count FROM bill_items WHERE bill_id = $1 AND is_paid = false',
+            [id]
+        );
+        
+        if (parseInt(unpaidItems.rows[0].count) > 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot close bill with unpaid items'
+            });
+        }
+        
+        const result = await pool.query(
+            `UPDATE bills SET status = 'closed', closed_at = CURRENT_TIMESTAMP 
+             WHERE id = $1 RETURNING *`,
+            [id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Bill not found'
+            });
+        }
+        
+        const bill = result.rows[0];
+        await pool.query(
+            "UPDATE tables SET status = 'available' WHERE id = $1",
+            [bill.table_id]
+        );
+        
+        res.json({
+            success: true,
+            message: 'Bill closed successfully',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Close bill error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+// @desc    Force close bill (even with unpaid items)
+// @route   PUT /api/bills/:id/force-close
 // @access  Private
 const forceCloseBill = async (req, res) => {
     try {
@@ -423,36 +476,32 @@ const forceCloseBill = async (req, res) => {
     }
 };
 
-const closeBill = async (req, res) => {
+// @desc    Delete bill (completely remove from database)
+// @route   DELETE /api/bills/:id
+// @access  Private
+const deleteBill = async (req, res) => {
     try {
         const { id } = req.params;
         
-        const unpaidItems = await pool.query(
-            'SELECT COUNT(*) as count FROM bill_items WHERE bill_id = $1 AND is_paid = false',
+        // Get bill details first
+        const billCheck = await pool.query(
+            'SELECT * FROM bills WHERE id = $1',
             [id]
         );
         
-        if (parseInt(unpaidItems.rows[0].count) > 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Cannot close bill with unpaid items'
-            });
-        }
-        
-        const result = await pool.query(
-            `UPDATE bills SET status = 'closed', closed_at = CURRENT_TIMESTAMP 
-             WHERE id = $1 RETURNING *`,
-            [id]
-        );
-        
-        if (result.rows.length === 0) {
+        if (billCheck.rows.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: 'Bill not found'
             });
         }
         
-        const bill = result.rows[0];
+        const bill = billCheck.rows[0];
+        
+        // Delete bill (cascade will delete bill_items and payments)
+        await pool.query('DELETE FROM bills WHERE id = $1', [id]);
+        
+        // Update table status to available
         await pool.query(
             "UPDATE tables SET status = 'available' WHERE id = $1",
             [bill.table_id]
@@ -460,11 +509,14 @@ const closeBill = async (req, res) => {
         
         res.json({
             success: true,
-            message: 'Bill closed successfully',
-            data: result.rows[0]
+            message: 'Bill deleted successfully',
+            data: {
+                billNumber: bill.bill_number,
+                tableNumber: bill.table_number
+            }
         });
     } catch (error) {
-        console.error('Close bill error:', error);
+        console.error('Delete bill error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
@@ -481,5 +533,6 @@ module.exports = {
     createBill,
     addItemsToBill,
     closeBill,
-    forceCloseBill
+    forceCloseBill,
+    deleteBill
 };
