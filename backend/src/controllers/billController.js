@@ -404,6 +404,168 @@ const closeBill = async (req, res) => {
     }
 };
 
+// @desc    Finish/Complete bill (marks as paid and closed)
+// @route   PUT /api/bills/:id/finish
+// @access  Private
+const finishBill = async (req, res) => {
+    const client = await pool.connect();
+    
+    try {
+        const { id } = req.params;
+        
+        await client.query('BEGIN');
+        
+        // Check if bill exists and is active
+        const billCheck = await client.query(
+            'SELECT * FROM bills WHERE id = $1',
+            [id]
+        );
+        
+        if (billCheck.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({
+                success: false,
+                message: 'Bill not found'
+            });
+        }
+        
+        const bill = billCheck.rows[0];
+        
+        // Check if there are unpaid items
+        const unpaidItems = await client.query(
+            'SELECT COUNT(*) as count FROM bill_items WHERE bill_id = $1 AND is_paid = false',
+            [id]
+        );
+        
+        if (parseInt(unpaidItems.rows[0].count) > 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot finish bill with unpaid items. All items must be paid first.'
+            });
+        }
+        
+        // Mark all items as paid (in case any were missed)
+        await client.query(
+            'UPDATE bill_items SET is_paid = true WHERE bill_id = $1',
+            [id]
+        );
+        
+        // Update bill to finished/closed status
+        const result = await client.query(
+            `UPDATE bills 
+             SET status = 'closed', 
+                 paid_amount = total_amount,
+                 closed_at = CURRENT_TIMESTAMP 
+             WHERE id = $1 
+             RETURNING *`,
+            [id]
+        );
+        
+        // Update table status to available
+        await client.query(
+            "UPDATE tables SET status = 'available' WHERE id = $1",
+            [bill.table_id]
+        );
+        
+        await client.query('COMMIT');
+        
+        res.json({
+            success: true,
+            message: 'Bill finished successfully',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Finish bill error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    } finally {
+        client.release();
+    }
+};
+
+// @desc    Delete bill (only if no payments made)
+// @route   DELETE /api/bills/:id
+// @access  Private
+const deleteBill = async (req, res) => {
+    const client = await pool.connect();
+    
+    try {
+        const { id } = req.params;
+        
+        await client.query('BEGIN');
+        
+        // Check if bill exists
+        const billCheck = await client.query(
+            'SELECT * FROM bills WHERE id = $1',
+            [id]
+        );
+        
+        if (billCheck.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({
+                success: false,
+                message: 'Bill not found'
+            });
+        }
+        
+        const bill = billCheck.rows[0];
+        
+        // Check if any payments have been made
+        const paymentsCheck = await client.query(
+            'SELECT COUNT(*) as count FROM payments WHERE bill_id = $1',
+            [id]
+        );
+        
+        if (parseInt(paymentsCheck.rows[0].count) > 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot delete bill with existing payments. Please finish the bill instead.'
+            });
+        }
+        
+        // Delete bill items first (foreign key constraint)
+        await client.query(
+            'DELETE FROM bill_items WHERE bill_id = $1',
+            [id]
+        );
+        
+        // Delete the bill
+        await client.query(
+            'DELETE FROM bills WHERE id = $1',
+            [id]
+        );
+        
+        // Update table status to available
+        await client.query(
+            "UPDATE tables SET status = 'available' WHERE id = $1",
+            [bill.table_id]
+        );
+        
+        await client.query('COMMIT');
+        
+        res.json({
+            success: true,
+            message: 'Bill deleted successfully'
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Delete bill error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     getBills,
     getBill,
@@ -411,5 +573,7 @@ module.exports = {
     getBillByTableNumber,
     createBill,
     addItemsToBill,
-    closeBill
+    closeBill,
+    finishBill,
+    deleteBill
 };

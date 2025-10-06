@@ -36,12 +36,15 @@ const LoginPage = () => {
         <div className="min-h-screen bg-slate-900 flex items-center justify-center px-4">
             <div className="max-w-md w-full">
                 <div className="bg-slate-800 rounded-lg shadow-xl p-8">
-                    <h2 className="text-3xl font-bold text-white mb-2 text-center">
-                        SplitBill Restaurant
-                    </h2>
-                    <p className="text-slate-400 text-center mb-8">
-                        Sign in to your account
-                    </p>
+                    <div className="text-center mb-8">
+                        <div className="text-6xl mb-4">🍽️</div>
+                        <h2 className="text-3xl font-bold text-white mb-2">
+                            SplitBill Restaurant
+                        </h2>
+                        <p className="text-slate-400">
+                            Sign in to your account
+                        </p>
+                    </div>
 
                     {error && (
                         <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded mb-4">
@@ -59,7 +62,7 @@ const LoginPage = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full px-4 py-2 bg-slate-700 text-white rounded border border-slate-600 focus:border-blue-500 focus:outline-none"
-                                placeholder="admin@restaurant.com"
+                                placeholder="Enter your email"
                                 required
                             />
                         </div>
@@ -86,10 +89,6 @@ const LoginPage = () => {
                             {loading ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
-
-                    <p className="text-slate-400 text-sm text-center mt-6">
-                        Demo: test@restaurant.com / test123
-                    </p>
                 </div>
             </div>
         </div>

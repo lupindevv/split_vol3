@@ -45,7 +45,9 @@ export const billAPI = {
     getByTableNumber: (tableNumber) => api.get(`/api/bills/table/${tableNumber}`),
     create: (data) => api.post('/api/bills', data),
     addItems: (id, data) => api.post(`/api/bills/${id}/items`, data),
-    close: (id) => api.put(`/api/bills/${id}/close`)
+    close: (id) => api.put(`/api/bills/${id}/close`),
+    finish: (id) => api.put(`/api/bills/${id}/finish`),    // New
+    delete: (id) => api.delete(`/api/bills/${id}`)         // New
 };
 
 export const paymentAPI = {
