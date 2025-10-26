@@ -42,13 +42,13 @@ const BillCard = ({ bill, onUpdate }) => {
                     <div className="flex justify-between text-sm">
                         <span className="text-slate-400">Total:</span>
                         <span className="text-white font-semibold">
-                            €{parseFloat(bill.total_amount).toFixed(2)}
+                            {formatCurrency(bill.total_amount)}
                         </span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-slate-400">Paid:</span>
                         <span className="text-green-500 font-semibold">
-                            €{parseFloat(bill.paid_amount).toFixed(2)}
+                            {formatCurrency(bill.paid_amount)}
                         </span>
                     </div>
                 </div>
