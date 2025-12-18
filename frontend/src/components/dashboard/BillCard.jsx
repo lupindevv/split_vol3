@@ -1,6 +1,8 @@
 import { QrCode, Eye, DollarSign } from 'lucide-react';
 import { useState } from 'react';
 import BillDetailsModal from './BillDetailsModal';
+import { formatCurrency } from "../../../utils/formatCurrency";
+
 
 const BillCard = ({ bill, onUpdate }) => {
     const [showDetails, setShowDetails] = useState(false);
