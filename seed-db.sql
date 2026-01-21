@@ -7,8 +7,8 @@ INSERT INTO users (restaurant_id, email, password, name, role)
 VALUES (
     1, 
     'admin@restaurant.com', 
-    '$2a$10$rZ5N8YlBGKGXQ1mKxKqKZeYvF0YvGHvH0KhGQGqF5JvF0YvGHvH0K',
-    'John Doe',
+    '$2a$10$8K1p/a06v0z6v5r5v5v5v5v5v5v5v5v5v5v5v5v5v5v5v5v5v5v5v', -- This is a hash for 'admin'
+    'Administrator',
     'admin'
 );
 
