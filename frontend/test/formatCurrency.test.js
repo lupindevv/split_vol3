@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatCurrency, parseCurrency } from '../utils/formatCurrency.js';
+import { formatCurrency, parseCurrency } from '../src/utils/formatCurrency.js';
 
 describe('formatCurrency', () => {
     it('formats numeric input with euro symbol and two decimals', () => {
